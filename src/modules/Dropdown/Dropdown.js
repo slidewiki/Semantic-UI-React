@@ -1358,11 +1358,12 @@ export default class Dropdown extends Component {
       simple,
       trigger,
     } = this.props
-    const { open, upward } = this.state
+    const { open, upward, focus } = this.state
 
     // Classes
     const classes = cx(
       'ui',
+      useKeyOnly(focus, 'focus'),
       useKeyOnly(open, 'active visible'),
       useKeyOnly(disabled, 'disabled'),
       useKeyOnly(error, 'error'),
