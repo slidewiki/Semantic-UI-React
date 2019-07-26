@@ -1,5 +1,5 @@
 {
-  "name": "slidewiki-semantic-ui-react",
+  "name": "semantic-ui-react",
   "version": "0.81.3",
   "description": "Accessible SlideWiki version of Semantic-UI-React",
   "jsnext:main": "dist/es/index.js",
