@@ -10,6 +10,12 @@ import { createShorthandFactory, customPropTypes, getUnhandledProps } from '../.
  */
 class DropdownSearchInput extends Component {
   static propTypes = {
+    /** The ID of the selected item in the listbox */
+    ariaActiveDescendant: PropTypes.string,
+
+    /** The ID of the selected item in the listbox */
+    ariaLabelledBy: PropTypes.string,
+
     /** An element type to render as (string or function). */
     as: customPropTypes.as,
 
@@ -46,14 +52,25 @@ class DropdownSearchInput extends Component {
   handleRef = c => _.invoke(this.props, 'inputRef', c)
 
   render() {
-    const { autoComplete, className, tabIndex, type, value } = this.props
+    const {
+      autoComplete,
+      className,
+      tabIndex,
+      type,
+      value,
+      ariaActiveDescendant,
+      ariaLabelledBy,
+    } = this.props
     const classes = cx('search', className)
     const rest = getUnhandledProps(DropdownSearchInput, this.props)
 
     return (
+      // eslint-disable-next-line jsx-a11y/aria-activedescendant-has-tabindex
       <input
         {...rest}
+        aria-activedescendant={ariaActiveDescendant}
         aria-autocomplete='list'
+        aria-labelledby={ariaLabelledBy}
         autoComplete={autoComplete}
         className={classes}
         onChange={this.handleChange}

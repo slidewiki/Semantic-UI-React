@@ -56,6 +56,9 @@ export default class Dropdown extends Component {
       PropTypes.bool,
     ]),
 
+    /** A Dropdown should be provided with the ID of a label. */
+    'aria-labelledby': PropTypes.string,
+
     /** A Dropdown can reduce its complexity. */
     basic: PropTypes.bool,
 
@@ -129,6 +132,8 @@ export default class Dropdown extends Component {
 
     /** A dropdown menu can contain a header. */
     header: PropTypes.node,
+
+    id: PropTypes.string,
 
     /** Shorthand for Icon. */
     icon: PropTypes.oneOfType([PropTypes.node, PropTypes.object]),
@@ -849,6 +854,30 @@ export default class Dropdown extends Component {
     return _.get(options, `[${selectedIndex}]`)
   }
 
+  getAriaActiveDescendant = () => {
+    const { id } = this.props
+    const { selectedIndex, value } = this.state
+
+    return id && value && (selectedIndex || selectedIndex === 0)
+      ? `${id}-option-${selectedIndex}`
+      : undefined
+  }
+
+  getAriaLabelledBy = () => {
+    const { id, multiple } = this.props
+    const { value } = this.state
+
+    let labelledBy = this.props['aria-labelledby']
+
+    if (multiple && value) {
+      const multipleSelected = value.map(val => this.getItemId(val)).join(' ')
+
+      labelledBy = labelledBy ? `${labelledBy} ${multipleSelected}` : multipleSelected
+    }
+
+    return id ? `${labelledBy} ${id}-selected` : labelledBy
+  }
+
   getEnabledIndices = (givenOptions) => {
     const options = givenOptions || this.getMenuOptions()
 
@@ -868,6 +897,12 @@ export default class Dropdown extends Component {
     return _.find(options, { value })
   }
 
+  getItemId = (value) => {
+    const { id } = this.props
+
+    return `${id}-selected-tag-${value.replace(/\s/g, '')}`
+  }
+
   getMenuItemIndexByValue = (value, givenOptions) => {
     const options = givenOptions || this.getMenuOptions()
 
@@ -875,27 +910,29 @@ export default class Dropdown extends Component {
   }
 
   getDropdownAriaOptions = () => {
-    const { loading, disabled, search, multiple } = this.props
+    const { loading, disabled, multiple, search } = this.props
     const { open } = this.state
     const ariaOptions = {
-      role: search ? 'combobox' : 'listbox',
+      role: search || multiple ? 'combobox' : 'button',
       'aria-busy': loading,
       'aria-disabled': disabled,
       'aria-expanded': !!open,
+      'aria-labelledby': !search ? this.getAriaLabelledBy() : undefined,
+      'aria-haspopup': 'listbox',
     }
-    if (ariaOptions.role === 'listbox') {
-      ariaOptions['aria-multiselectable'] = multiple
-    }
+    if (multiple) ariaOptions['aria-multiselectable'] = multiple
+    if (!search) ariaOptions['aria-activedescendant'] = this.getAriaActiveDescendant()
     return ariaOptions
   }
 
   getDropdownMenuAriaOptions() {
     const { search, multiple } = this.props
     const ariaOptions = {}
+    ariaOptions.role = 'listbox'
+    ariaOptions['aria-labelledby'] = this.props['aria-labelledby']
 
     if (search) {
       ariaOptions['aria-multiselectable'] = multiple
-      ariaOptions.role = 'listbox'
     }
     return ariaOptions
   }
@@ -1159,7 +1196,7 @@ export default class Dropdown extends Component {
   // ----------------------------------------
 
   renderText = () => {
-    const { multiple, placeholder, search, text } = this.props
+    const { multiple, placeholder, search, text, id } = this.props
     const { searchQuery, value, open } = this.state
     const hasValue = multiple ? !_.isEmpty(value) : !_.isNil(value) && value !== ''
 
@@ -1178,9 +1215,13 @@ export default class Dropdown extends Component {
     } else if (hasValue) {
       _text = _.get(this.getItemByValue(value), 'text')
     }
+    const extraProps = []
+    if (id) {
+      extraProps.id = `${id}-selected`
+    }
 
     return (
-      <div className={classes} role='alert' aria-live='polite'>
+      <div className={classes} {...extraProps}>
         {_text}
       </div>
     )
@@ -1193,6 +1234,8 @@ export default class Dropdown extends Component {
     if (!search) return null
     return DropdownSearchInput.create(searchInput, {
       defaultProps: {
+        ariaActiveDescendant: this.getAriaActiveDescendant(),
+        ariaLabelledBy: this.getAriaLabelledBy(),
         inputRef: this.handleSearchRef,
         onChange: this.handleSearchChange,
         style: { width: this.computeSearchInputWidth() },
@@ -1211,7 +1254,7 @@ export default class Dropdown extends Component {
 
   renderLabels = () => {
     debug('renderLabels()')
-    const { multiple, renderLabel } = this.props
+    const { multiple, renderLabel, id } = this.props
     const { selectedLabel, value } = this.state
     if (!multiple || _.isEmpty(value)) {
       return
@@ -1229,6 +1272,7 @@ export default class Dropdown extends Component {
         onClick: this.handleLabelClick,
         onRemove: this.handleLabelRemove,
         value: item.value,
+        id: id ? this.getItemId(item.value) : undefined,
       }
 
       return Label.create(renderLabel(item, index, defaultProps), { defaultProps })
@@ -1236,7 +1280,7 @@ export default class Dropdown extends Component {
   }
 
   renderOptions = () => {
-    const { lazyLoad, multiple, search, noResultsMessage } = this.props
+    const { lazyLoad, multiple, search, noResultsMessage, id } = this.props
     const { open, selectedIndex, value } = this.state
 
     // lazy load, only render options when open
@@ -1261,6 +1305,7 @@ export default class Dropdown extends Component {
         key: getKeyOrValue(opt.key, opt.value),
         // Needed for handling click events on disabled items
         style: { ...opt.style, pointerEvents: 'all' },
+        id: id ? `${id}-option-${i}` : undefined,
       }),
     )
   }
