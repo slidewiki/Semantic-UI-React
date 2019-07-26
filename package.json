@@ -1,7 +1,7 @@
 {
-  "name": "semantic-ui-react",
+  "name": "slidewiki-semantic-ui-react",
   "version": "0.81.3",
-  "description": "The official Semantic-UI-React integration.",
+  "description": "Accessible SlideWiki version of Semantic-UI-React",
   "jsnext:main": "dist/es/index.js",
   "main": "dist/commonjs/index.js",
   "module": "dist/es/index.js",
@@ -57,12 +57,12 @@
     "type": "git",
     "url": "git+ssh://github.com/Semantic-Org/Semantic-UI-React.git"
   },
-  "author": "Levi Thomason <me@levithomason.com>",
+  "author": "aoelen",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Semantic-Org/Semantic-UI-React/issues"
   },
-  "homepage": "https://github.com/Semantic-Org/Semantic-UI-React#readme",
+  "homepage": "https://github.com/slidewiki/Semantic-UI-React",
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.49",
     "classnames": "^2.2.5",

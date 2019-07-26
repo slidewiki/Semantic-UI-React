@@ -1,3 +1,7 @@
+<p align="center">
+  Forked from <a href="https://github.com/Semantic-Org/Semantic-UI-React">Semantic UI React</a>. The goal is to later merge the accessibility improvements back to Semantic UI React. Currently the accessibility changes are made on version v0.81.3 because SlideWiki is only support this version (because of React V15)
+</p>
+
 <!-- Logo -->
 <p align="center">
   <a href="https://react.semantic-ui.com">
