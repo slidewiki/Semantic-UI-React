@@ -13,6 +13,9 @@ export interface FormFieldProps extends StrictFormFieldProps {
 }
 
 export interface StrictFormFieldProps {
+  /** A form field can be labelled to improve accessibility */
+  'aria-labelledby'?: string
+
   /** An element type to render as (string or function). */
   as?: any
 

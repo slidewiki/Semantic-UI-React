@@ -57,6 +57,15 @@ export default class Dropdown extends Component {
       PropTypes.bool,
     ]),
 
+    /** Specify an input description (e.g., when an error occurs)  */
+    'aria-describedby': PropTypes.string,
+
+    /** Aria invalid should be set when a validation error occurs  */
+    'aria-invalid': PropTypes.bool,
+
+    /** A dropdown can be labelled to improve accessibility */
+    'aria-labelledby': PropTypes.string,
+
     /** A Dropdown can reduce its complexity. */
     basic: PropTypes.bool,
 
@@ -140,6 +149,9 @@ export default class Dropdown extends Component {
 
     /** Shorthand for Icon. */
     icon: PropTypes.oneOfType([PropTypes.node, PropTypes.object]),
+
+    /** When an id is provided to a dropdown, automatically accessibility features are applied. */
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** A dropdown can be formatted to appear inline in other content. */
     inline: PropTypes.bool,
@@ -367,7 +379,7 @@ export default class Dropdown extends Component {
     icon: 'dropdown',
     minCharacters: 1,
     noResultsMessage: 'No results found.',
-    openOnFocus: true,
+    openOnFocus: false,
     renderLabel: ({ text }) => text,
     searchInput: 'text',
     selectOnBlur: true,
@@ -743,7 +755,11 @@ export default class Dropdown extends Component {
     // Heads up! Don't remove this.
     // https://github.com/Semantic-Org/Semantic-UI-React/issues/1315
     const currentTarget = _.get(e, 'currentTarget')
-    if (currentTarget && currentTarget.contains(document.activeElement)) return
+    if (
+      currentTarget &&
+      (currentTarget.contains(document.activeElement) || currentTarget.contains(e.relatedTarget))
+    )
+      return
 
     const { closeOnBlur, multiple, selectOnBlur } = this.props
     // do not "blur" when the mouse is down inside of the Dropdown
@@ -882,13 +898,26 @@ export default class Dropdown extends Component {
   }
 
   getDropdownAriaOptions = () => {
-    const { loading, disabled, search, multiple } = this.props
+    const { id, loading, disabled, search, multiple } = this.props
     const { open } = this.state
     const ariaOptions = {
-      role: search ? 'combobox' : 'listbox',
+      role: search ? 'combobox' : 'button',
       'aria-busy': loading,
       'aria-disabled': disabled,
       'aria-expanded': !!open,
+      'aria-haspopup': 'listbox',
+      'aria-labelledby': !search ? this.props['aria-labelledby'] : null,
+      'aria-describedby': !search ? this.props['aria-describedby'] : null,
+      'aria-invalid': !search ? this.props['aria-invalid'] : null,
+    }
+
+    // aria-labelledby only set when no search input is provided, when search is set, getSearchInputAriaOptions is used instead
+    if (!search) {
+      if (ariaOptions['aria-labelledby'] && id) {
+        ariaOptions['aria-labelledby'] = `${ariaOptions['aria-labelledby']} ${id}-rendered-text`
+      } else if (id) {
+        ariaOptions['aria-labelledby'] = `${id}-rendered-text`
+      }
     }
     if (ariaOptions.role === 'listbox') {
       ariaOptions['aria-multiselectable'] = multiple
@@ -904,6 +933,40 @@ export default class Dropdown extends Component {
       ariaOptions['aria-multiselectable'] = multiple
       ariaOptions.role = 'listbox'
     }
+    return ariaOptions
+  }
+
+  getSearchInputAriaOptions() {
+    const { id, multiple } = this.props
+    const { open, selectedIndex, value } = this.state
+
+    const activeDescendant = open && id ? `${id}-option-${selectedIndex}` : null
+
+    let ariaLabelledBy = this.props['aria-labelledby']
+
+    if (ariaLabelledBy && id) {
+      ariaLabelledBy = `${ariaLabelledBy} ${id}-rendered-text`
+    } else if (id) {
+      ariaLabelledBy = `${id}-rendered-text`
+    }
+
+    if (multiple && id && value) {
+      const options = value.map((key, index) => `${id}-value-${index}`).join(' ')
+      if (ariaLabelledBy) {
+        ariaLabelledBy = `${ariaLabelledBy} ${options}`
+      } else {
+        ariaLabelledBy = options
+      }
+    }
+
+    const ariaOptions = {
+      'aria-activedescendant': activeDescendant,
+      'aria-autocomplete': 'list',
+      'aria-describedby': this.props['aria-describedby'],
+      'aria-invalid': this.props['aria-invalid'],
+      'aria-labelledby': ariaLabelledBy,
+    }
+
     return ariaOptions
   }
 
@@ -1156,6 +1219,13 @@ export default class Dropdown extends Component {
 
     this.trySetState({ open: true })
     this.scrollSelectedItemIntoView()
+
+    // TODO improve this
+    if (!search && this.ref.current && this.ref.current.querySelector('.menu')) {
+      setTimeout(() => {
+        this.ref.current.querySelector('.menu').focus()
+      }, 10)
+    }
   }
 
   close = (e, callback = this.handleClose) => {
@@ -1194,7 +1264,7 @@ export default class Dropdown extends Component {
   // ----------------------------------------
 
   renderText = () => {
-    const { multiple, placeholder, search, text } = this.props
+    const { id, multiple, placeholder, search, text } = this.props
     const { searchQuery, value, open } = this.state
     const hasValue = this.hasValue()
 
@@ -1212,9 +1282,10 @@ export default class Dropdown extends Component {
     } else if (hasValue) {
       _text = _.get(this.getItemByValue(value), 'text')
     }
+    const _id = id ? `${id}-rendered-text` : null
 
     return (
-      <div className={classes} role='alert' aria-live='polite' aria-atomic>
+      <div className={classes} id={_id}>
         {_text}
       </div>
     )
@@ -1223,6 +1294,7 @@ export default class Dropdown extends Component {
   renderSearchInput = () => {
     const { search, searchInput } = this.props
     const { searchQuery } = this.state
+    const ariaOptions = this.getSearchInputAriaOptions()
 
     return (
       search && (
@@ -1232,6 +1304,7 @@ export default class Dropdown extends Component {
               style: { width: this.computeSearchInputWidth() },
               tabIndex: this.computeSearchInputTabIndex(),
               value: searchQuery,
+              ...ariaOptions,
             },
             overrideProps: this.handleSearchInputOverrides,
           })}
@@ -1248,7 +1321,7 @@ export default class Dropdown extends Component {
 
   renderLabels = () => {
     debug('renderLabels()')
-    const { multiple, renderLabel } = this.props
+    const { multiple, renderLabel, id } = this.props
     const { selectedLabel, value } = this.state
     if (!multiple || _.isEmpty(value)) {
       return
@@ -1266,6 +1339,9 @@ export default class Dropdown extends Component {
         onClick: this.handleLabelClick,
         onRemove: this.handleLabelRemove,
         value: item.value,
+        id: id ? `${id}-value-${index}` : null,
+        role: 'alert',
+        'aria-live': 'assertive',
       }
 
       return Label.create(renderLabel(item, index, defaultProps), { defaultProps })
@@ -1273,7 +1349,7 @@ export default class Dropdown extends Component {
   }
 
   renderOptions = () => {
-    const { lazyLoad, multiple, search, noResultsMessage } = this.props
+    const { lazyLoad, multiple, search, noResultsMessage, id } = this.props
     const { open, selectedIndex, value } = this.state
 
     // lazy load, only render options when open
@@ -1282,7 +1358,11 @@ export default class Dropdown extends Component {
     const options = this.getMenuOptions()
 
     if (noResultsMessage !== null && search && _.isEmpty(options)) {
-      return <div className='message'>{noResultsMessage}</div>
+      return (
+        <div className='message' role='alert' aria-live='assertive'>
+          {noResultsMessage}
+        </div>
+      )
     }
 
     const isActive = multiple
@@ -1294,6 +1374,7 @@ export default class Dropdown extends Component {
         active: isActive(opt.value),
         onClick: this.handleItemClick,
         selected: selectedIndex === i,
+        id: id ? `${id}-option-${i}` : null,
         ...opt,
         key: getKeyOrValue(opt.key, opt.value),
         // Needed for handling click events on disabled items
@@ -1303,8 +1384,8 @@ export default class Dropdown extends Component {
   }
 
   renderMenu = () => {
-    const { children, direction, header } = this.props
-    const { open } = this.state
+    const { children, direction, header, id, search } = this.props
+    const { open, selectedIndex } = this.state
     const ariaOptions = this.getDropdownMenuAriaOptions()
 
     // single menu child
@@ -1315,8 +1396,17 @@ export default class Dropdown extends Component {
       return cloneElement(menuChild, { className, ...ariaOptions })
     }
 
+    const activeItem = id ? `${id}-option-${selectedIndex}` : null
+    const activeDescendant = open && !search ? activeItem : null
+
     return (
-      <DropdownMenu {...ariaOptions} direction={direction} open={open}>
+      <DropdownMenu
+        {...ariaOptions}
+        direction={direction}
+        open={open}
+        aria-activedescendant={activeDescendant}
+        tabIndex='-1'
+      >
         {DropdownHeader.create(header, { autoGenerateKey: false })}
         {this.renderOptions()}
       </DropdownMenu>
@@ -1338,6 +1428,7 @@ export default class Dropdown extends Component {
       fluid,
       floating,
       icon,
+      id,
       inline,
       item,
       labeled,
@@ -1356,6 +1447,7 @@ export default class Dropdown extends Component {
     const classes = cx(
       'ui',
       useKeyOnly(open, 'active visible'),
+      useKeyOnly(focus, 'focus'),
       useKeyOnly(disabled, 'disabled'),
       useKeyOnly(error, 'error'),
       useKeyOnly(loading, 'loading'),
@@ -1392,6 +1484,7 @@ export default class Dropdown extends Component {
         <ElementType
           {...rest}
           {...ariaOptions}
+          id={id}
           className={classes}
           onBlur={this.handleBlur}
           onClick={this.handleClick}

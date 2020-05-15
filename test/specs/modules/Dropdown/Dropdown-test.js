@@ -195,12 +195,12 @@ describe('Dropdown', () => {
     dropdownMenuIsOpen()
   })
 
-  it('opens on focus', () => {
+  it('does not open on focus', () => {
     wrapperMount(<Dropdown options={options} />)
 
     dropdownMenuIsClosed()
     wrapper.simulate('focus')
-    dropdownMenuIsOpen()
+    dropdownMenuIsClosed()
   })
 
   describe('disabled', () => {
@@ -2924,6 +2924,32 @@ describe('Dropdown', () => {
       )
 
       wrapper.simulate('click').should.have.className('upward')
+    })
+  })
+
+  describe('id', () => {
+    it('is passed to the dropdown', () => {
+      const id = faker.hacker.noun()
+
+      wrapperShallow(<Dropdown options={options} id={id} />)
+
+      wrapper.childAt(0).should.have.prop('id', id)
+    })
+
+    it('adds an id to the rendered text', () => {
+      const id = faker.hacker.noun()
+
+      wrapperMount(<Dropdown options={options} id={id} />)
+
+      wrapper.find('div.text').should.have.prop('id', `${id}-rendered-text`)
+    })
+
+    it('adds aria-labelledby with the rendered text id', () => {
+      const id = faker.hacker.noun()
+
+      wrapperShallow(<Dropdown options={options} id={id} />)
+
+      wrapper.childAt(0).should.have.prop('aria-labelledby', `${id}-rendered-text`)
     })
   })
 })

@@ -15,7 +15,9 @@ import {
 } from '../../lib'
 import Label from '../../elements/Label'
 import Checkbox from '../../modules/Checkbox'
+import Dropdown from '../../modules/Dropdown'
 import Radio from '../../addons/Radio'
+import Select from '../../addons/Select/Select'
 
 /**
  * A field is a form element containing a label and an input.
@@ -132,10 +134,27 @@ function FormField(props) {
   // Other Control
   // ----------------------------------------
 
+  const isDropdown = control === Dropdown || control === Select
+
+  // use htmlFor to link label to input when control isn't a dropdown
+  // when it is a dropdown, set an id and connect via aria-labelledby on the dropdown
+  const defaultProps = {
+    htmlFor: !isDropdown ? id : null,
+    id: isDropdown && id ? `${id}-label` : null,
+  }
+
+  if (isDropdown) {
+    if (props['aria-labelledby']) {
+      ariaAttrs['aria-labelledby'] = `${props['aria-labelledby']} ${id}-label`
+    } else if (id) {
+      ariaAttrs['aria-labelledby'] = `${id}-label`
+    }
+  }
+
   return (
     <ElementType className={classes}>
       {createHTMLLabel(label, {
-        defaultProps: { htmlFor: id },
+        defaultProps,
         autoGenerateKey: false,
       })}
       {errorLabelBefore}
@@ -146,6 +165,9 @@ function FormField(props) {
 }
 
 FormField.propTypes = {
+  /** A form field can be labelled to improve accessibility */
+  'aria-labelledby': PropTypes.string,
+
   /** An element type to render as (string or function). */
   as: PropTypes.elementType,
 
@@ -175,7 +197,7 @@ FormField.propTypes = {
   error: PropTypes.oneOfType([PropTypes.bool, customPropTypes.itemShorthand]),
 
   /** The id of the control */
-  id: PropTypes.string,
+  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
   /** A field can have its label next to instead of above it. */
   inline: PropTypes.bool,

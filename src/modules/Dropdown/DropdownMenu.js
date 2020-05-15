@@ -26,7 +26,7 @@ function DropdownMenu(props) {
   const ElementType = getElementType(DropdownMenu, props)
 
   return (
-    <ElementType {...rest} className={classes}>
+    <ElementType {...rest} className={classes} role='listbox'>
       {childrenUtils.isNil(children) ? content : children}
     </ElementType>
   )

@@ -112,7 +112,6 @@ class DropdownItem extends Component {
     const ariaOptions = {
       role: 'option',
       'aria-disabled': disabled,
-      'aria-checked': active,
       'aria-selected': selected,
     }
 
