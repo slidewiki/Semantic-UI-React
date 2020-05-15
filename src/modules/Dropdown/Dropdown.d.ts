@@ -27,6 +27,15 @@ export interface StrictDropdownProps {
    */
   allowAdditions?: boolean
 
+  /** Specify an input description (e.g., when an error occurs)  */
+  'aria-describedby'?: string
+
+  /** Aria invalid should be set when a validation error occurs  */
+  'aria-invalid'?: boolean
+
+  /** A dropdown can be labelled to improve accessibility */
+  'aria-labelledby'?: string
+
   /** A Dropdown can reduce its complexity. */
   basic?: boolean
 
@@ -96,6 +105,9 @@ export interface StrictDropdownProps {
 
   /** Shorthand for Icon. */
   icon?: any
+
+  /** The id of the dropdown */
+  id?: number | string
 
   /** A dropdown can be formatted to appear inline in other content. */
   inline?: boolean

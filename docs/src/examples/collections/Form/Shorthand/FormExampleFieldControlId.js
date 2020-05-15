@@ -25,8 +25,9 @@ const FormExampleFieldControlId = () => (
       <Form.Field
         control={Select}
         options={genderOptions}
-        label={{ children: 'Gender', htmlFor: 'form-select-control-gender' }}
+        label='Gender'
         placeholder='Gender'
+        id='select-gender-search'
         search
         searchInput={{ id: 'form-select-control-gender' }}
       />

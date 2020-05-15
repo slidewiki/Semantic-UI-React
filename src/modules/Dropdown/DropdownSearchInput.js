@@ -48,7 +48,6 @@ class DropdownSearchInput extends Component {
     return (
       <input
         {...rest}
-        aria-autocomplete='list'
         autoComplete={autoComplete}
         className={classes}
         onChange={this.handleChange}
