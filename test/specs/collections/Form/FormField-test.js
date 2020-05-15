@@ -3,6 +3,7 @@ import React from 'react'
 
 import Radio from 'src/addons/Radio/Radio'
 import Label from 'src/elements/Label/Label'
+import Input from 'src/elements/Input/Input'
 import FormField from 'src/collections/Form/FormField'
 import { SUI } from 'src/lib'
 import Button from 'src/elements/Button/Button'
@@ -196,6 +197,45 @@ describe('FormField', () => {
 
       wrapper.should.have.exactly(1).descendants('Button')
       button.should.have.prop('content', 'Click Me')
+    })
+  })
+
+  describe('aria-invalid', () => {
+    it('is not set by default', () => {
+      const wrapper = shallow(<FormField control={Input} />)
+      const input = wrapper.find('Input')
+
+      wrapper.should.have.exactly(1).descendants('Input')
+      input.should.not.have.prop('aria-invalid')
+    })
+    it('is not set when error is false', () => {
+      const wrapper = shallow(<FormField control={Input} error={false} />)
+      const input = wrapper.find('Input')
+
+      wrapper.should.have.exactly(1).descendants('Input')
+      input.should.not.have.prop('aria-invalid')
+    })
+    it('is set when error is true', () => {
+      const wrapper = shallow(<FormField control={Input} error />)
+      const input = wrapper.find('Input')
+
+      wrapper.should.have.exactly(1).descendants('Input')
+      input.should.have.prop('aria-invalid', true)
+    })
+    it('is is set when error object is provided', () => {
+      const wrapper = shallow(
+        <FormField
+          control={Input}
+          error={{
+            content: 'Error message',
+            pointing: 'left',
+          }}
+        />,
+      )
+      const input = wrapper.find('Input')
+
+      wrapper.should.have.exactly(1).descendants('Input')
+      input.should.have.prop('aria-invalid', true)
     })
   })
 })
