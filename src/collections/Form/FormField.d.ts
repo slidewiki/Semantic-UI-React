@@ -13,6 +13,9 @@ export interface FormFieldProps extends StrictFormFieldProps {
 }
 
 export interface StrictFormFieldProps {
+  /** A form field can be labelled to improve accessibility */
+  'aria-labelledby'?: string
+
   /** An element type to render as (string or function). */
   as?: any
 
@@ -37,6 +40,9 @@ export interface StrictFormFieldProps {
 
   /** Individual fields may display an error state along with a message. */
   error?: boolean | SemanticShorthandItem<LabelProps>
+
+  /** The id of the control */
+  id?: number | string
 
   /** A field can have its label next to instead of above it. */
   inline?: boolean

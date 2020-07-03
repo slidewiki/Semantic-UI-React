@@ -15,7 +15,9 @@ import {
 } from '../../lib'
 import Label from '../../elements/Label'
 import Checkbox from '../../modules/Checkbox'
+import Dropdown from '../../modules/Dropdown'
 import Radio from '../../addons/Radio'
+import Select from '../../addons/Select/Select'
 
 /**
  * A field is a form element containing a label and an input.
@@ -41,6 +43,7 @@ function FormField(props) {
     required,
     type,
     width,
+    id,
   } = props
 
   const classes = cx(
@@ -58,7 +61,13 @@ function FormField(props) {
   const errorPointing = _.get(error, 'pointing', 'above')
   const errorLabel = Label.create(error, {
     autoGenerateKey: false,
-    defaultProps: { prompt: true, pointing: errorPointing },
+    defaultProps: {
+      prompt: true,
+      pointing: errorPointing,
+      id: id ? `${id}-error-message` : undefined,
+      role: 'alert',
+      'aria-atomic': true,
+    },
   })
 
   const errorLabelBefore = (errorPointing === 'below' || errorPointing === 'right') && errorLabel
@@ -89,7 +98,13 @@ function FormField(props) {
   // ----------------------------------------
   // Checkbox/Radio Control
   // ----------------------------------------
-  const controlProps = { ...rest, content, children, disabled, required, type }
+
+  const ariaDescribedBy = id && error ? `${id}-error-message` : null
+  const ariaAttrs = {
+    'aria-describedby': ariaDescribedBy,
+    'aria-invalid': error ? true : undefined,
+  }
+  const controlProps = { ...rest, content, children, disabled, required, type, id }
 
   // wrap HTML checkboxes/radios in the label
   if (control === 'input' && (type === 'checkbox' || type === 'radio')) {
@@ -97,7 +112,7 @@ function FormField(props) {
       <ElementType className={classes}>
         <label>
           {errorLabelBefore}
-          {createElement(control, controlProps)} {label}
+          {createElement(control, { ...ariaAttrs, ...controlProps })} {label}
           {errorLabelAfter}
         </label>
       </ElementType>
@@ -109,7 +124,7 @@ function FormField(props) {
     return (
       <ElementType className={classes}>
         {errorLabelBefore}
-        {createElement(control, { ...controlProps, label })}
+        {createElement(control, { ...ariaAttrs, ...controlProps, label })}
         {errorLabelAfter}
       </ElementType>
     )
@@ -119,22 +134,42 @@ function FormField(props) {
   // Other Control
   // ----------------------------------------
 
+  const isDropdown = control === Dropdown || control === Select
+
+  // use htmlFor to link label to input when control isn't a dropdown
+  // when it is a dropdown, set an id and connect via aria-labelledby on the dropdown
+  const defaultProps = {
+    htmlFor: !isDropdown ? id : null,
+    id: isDropdown && id ? `${id}-label` : null,
+  }
+
+  if (isDropdown) {
+    if (props['aria-labelledby']) {
+      ariaAttrs['aria-labelledby'] = `${props['aria-labelledby']} ${id}-label`
+    } else if (id) {
+      ariaAttrs['aria-labelledby'] = `${id}-label`
+    }
+  }
+
   return (
     <ElementType className={classes}>
       {createHTMLLabel(label, {
-        defaultProps: { htmlFor: _.get(controlProps, 'id') },
+        defaultProps,
         autoGenerateKey: false,
       })}
       {errorLabelBefore}
-      {createElement(control, controlProps)}
+      {createElement(control, { ...ariaAttrs, ...controlProps })}
       {errorLabelAfter}
     </ElementType>
   )
 }
 
 FormField.propTypes = {
+  /** A form field can be labelled to improve accessibility */
+  'aria-labelledby': PropTypes.string,
+
   /** An element type to render as (string or function). */
-  as: customPropTypes.as,
+  as: PropTypes.elementType,
 
   /** Primary content. */
   children: PropTypes.node,
@@ -160,6 +195,9 @@ FormField.propTypes = {
 
   /** Individual fields may display an error state along with a message. */
   error: PropTypes.oneOfType([PropTypes.bool, customPropTypes.itemShorthand]),
+
+  /** The id of the control */
+  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
   /** A field can have its label next to instead of above it. */
   inline: PropTypes.bool,

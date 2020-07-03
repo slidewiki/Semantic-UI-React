@@ -26,7 +26,7 @@ function DropdownMenu(props) {
   const ElementType = getElementType(DropdownMenu, props)
 
   return (
-    <ElementType {...rest} className={classes}>
+    <ElementType {...rest} className={classes} role='listbox'>
       {childrenUtils.isNil(children) ? content : children}
     </ElementType>
   )
@@ -34,7 +34,7 @@ function DropdownMenu(props) {
 
 DropdownMenu.propTypes = {
   /** An element type to render as (string or function). */
-  as: customPropTypes.as,
+  as: PropTypes.elementType,
 
   /** Primary content. */
   children: PropTypes.node,

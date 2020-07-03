@@ -25,8 +25,9 @@ const FormExampleFieldControlId = () => (
       <Form.Field
         control={Select}
         options={genderOptions}
-        label={{ children: 'Gender', htmlFor: 'form-select-control-gender' }}
+        label='Gender'
         placeholder='Gender'
+        id='select-gender-search'
         search
         searchInput={{ id: 'form-select-control-gender' }}
       />
@@ -36,6 +37,16 @@ const FormExampleFieldControlId = () => (
       control={TextArea}
       label='Opinion'
       placeholder='Opinion'
+    />
+    <Form.Field
+      id='form-input-control-error-email'
+      control={Input}
+      label='Email'
+      placeholder='joe@schmoe.com'
+      error={{
+        content: 'Please enter a valid email address',
+        pointing: 'below',
+      }}
     />
     <Form.Field
       id='form-button-control-public'

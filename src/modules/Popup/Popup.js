@@ -1,4 +1,5 @@
 import EventStack from '@semantic-ui-react/event-stack'
+import { Ref } from '@stardust-ui/react-component-ref'
 import cx from 'classnames'
 import _ from 'lodash'
 import PropTypes from 'prop-types'
@@ -18,7 +19,6 @@ import {
   useKeyOrValueAndKey,
 } from '../../lib'
 import Portal from '../../addons/Portal'
-import Ref from '../../addons/Ref'
 import { placementMapping, positions, positionsMapping } from './lib/positions'
 import createReferenceProxy from './lib/createReferenceProxy'
 import PopupContent from './PopupContent'
@@ -32,7 +32,7 @@ const debug = makeDebugger('popup')
 export default class Popup extends Component {
   static propTypes = {
     /** An element type to render as (string or function). */
-    as: customPropTypes.as,
+    as: PropTypes.elementType,
 
     /** Display the popup without the pointing arrow. */
     basic: PropTypes.bool,
@@ -127,6 +127,9 @@ export default class Popup extends Component {
     /** Position for the popover. */
     position: PropTypes.oneOf(positions),
 
+    /** Tells `Popper.js` to use the `position: fixed` strategy to position the popover. */
+    positionFixed: PropTypes.bool,
+
     /** An object containing custom settings for the Popper.js modifiers. */
     popperModifiers: PropTypes.object,
 
@@ -150,7 +153,7 @@ export default class Popup extends Component {
     disabled: false,
     eventsEnabled: true,
     offset: 0,
-    on: 'hover',
+    on: ['click', 'hover'],
     pinned: false,
     position: 'top left',
   }
@@ -204,6 +207,15 @@ export default class Popup extends Component {
       portalProps.closeOnPortalMouseLeave = true
       portalProps.mouseLeaveDelay = 300
     }
+    if (_.includes(normalizedOn, 'hover')) {
+      portalProps.openOnTriggerClick = false
+      portalProps.closeOnTriggerClick = false
+      portalProps.openOnTriggerMouseEnter = true
+      portalProps.closeOnTriggerMouseLeave = true
+      // Taken from SUI: https://git.io/vPmCm
+      portalProps.mouseLeaveDelay = 70
+      portalProps.mouseEnterDelay = 50
+    }
     if (_.includes(normalizedOn, 'click')) {
       portalProps.openOnTriggerClick = true
       portalProps.closeOnTriggerClick = true
@@ -212,13 +224,6 @@ export default class Popup extends Component {
     if (_.includes(normalizedOn, 'focus')) {
       portalProps.openOnTriggerFocus = true
       portalProps.closeOnTriggerBlur = true
-    }
-    if (_.includes(normalizedOn, 'hover')) {
-      portalProps.openOnTriggerMouseEnter = true
-      portalProps.closeOnTriggerMouseLeave = true
-      // Taken from SUI: https://git.io/vPmCm
-      portalProps.mouseLeaveDelay = 70
-      portalProps.mouseEnterDelay = 50
     }
 
     return portalProps
@@ -331,6 +336,7 @@ export default class Popup extends Component {
       pinned,
       popperModifiers,
       position,
+      positionFixed,
       trigger,
     } = this.props
     const { closed, portalRestProps } = this.state
@@ -367,6 +373,7 @@ export default class Popup extends Component {
           eventsEnabled={eventsEnabled}
           modifiers={modifiers}
           placement={positionsMapping[position]}
+          positionFixed={positionFixed}
           referenceElement={referenceElement}
         >
           {this.renderContent}
