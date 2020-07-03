@@ -1,3 +1,5 @@
+> This is forked because of some major changes to support better accessibility. We plan on merging this back to Semantic UI, but this requires some changes of default Semantic UI behaviour (e.g., not automatically open dropdowns on focus). 
+
 <!-- Logo -->
 <p align="center">
   <a href="https://react.semantic-ui.com">
