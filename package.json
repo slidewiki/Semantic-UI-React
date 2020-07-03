@@ -26,7 +26,6 @@
     "postdeploy:docs": "yarn build:changelog && yarn deploy:changelog",
     "lint": "cross-env NODE_ENV=production eslint .",
     "lint:fix": "yarn lint --fix",
-    "prepare": "yarn build",
     "prettier": "prettier --list-different \"**/*.{js,jsx,ts,tsx}\"",
     "prettier:fix": "prettier --write \"**/*.{js,jsx,ts,tsx}\"",
     "prerelease": "yarn lint && yarn tsd:lint && yarn tsd:test && yarn test && cross-env NODE_ENV=production yarn build",
